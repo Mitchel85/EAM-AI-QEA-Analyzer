@@ -27,6 +27,49 @@ from typing import Optional, Any
 import networkx as nx
 import pandas as pd
 
+
+DEFAULT_QEA_PATH_ALIASES = [
+    ("/mnt/data/", "/app/backend/data/external_files"),
+]
+
+DEFAULT_QEA_FALLBACK_DIRS = [
+    "/app/backend/data",
+]
+
+DEFAULT_QEA_SEARCH_DIRS = [
+    "/app/backend/data",
+    "/mnt/data",
+    "/app/backend/data/external_files",
+]
+
+
+def _parse_config_lines(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        items = re.split(r"[\r\n,;]+", value)
+        return [item.strip() for item in items if item.strip()]
+    if isinstance(value, (list, tuple, set)):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    return [text] if text else []
+
+
+def _parse_path_aliases(value: Any) -> list[tuple[str, str]]:
+    aliases: list[tuple[str, str]] = []
+    for item in _parse_config_lines(value):
+        if "=" in item:
+            alias, real = item.split("=", 1)
+        elif "->" in item:
+            alias, real = item.split("->", 1)
+        else:
+            continue
+        alias = alias.strip()
+        real = real.strip()
+        if alias and real:
+            aliases.append((alias, real))
+    return aliases
+
 # ═══════════════════════════════════════════════════════════════
 # AAroN-DERIVED TABLE SCHEMA KNOWLEDGE
 # ═══════════════════════════════════════════════════════════════
@@ -785,34 +828,32 @@ class QEAAnalyzer:
     implicit relationships exist, and how the tables connect.
     """
 
-    # Open WebUI path aliases — resolve /mnt/data/ to actual mounts
-    _PATH_ALIASES = [
-        ("/mnt/data/", "/app/backend/data/external_files"),
-    ]
-    _FALLBACK_DIRS = [
-        "/app/backend/data",
-    ]
-
     @staticmethod
-    def _resolve_path(qea_path: str = None) -> Path:
+    def _resolve_path(
+        qea_path: str = None,
+        path_aliases: Optional[list[tuple[str, str]]] = None,
+        fallback_dirs: Optional[list[str]] = None,
+    ) -> Path:
         """Resolve QEA file path with Open WebUI path alias awareness."""
+        path_aliases = path_aliases or DEFAULT_QEA_PATH_ALIASES
+        fallback_dirs = fallback_dirs or DEFAULT_QEA_FALLBACK_DIRS
         path = Path(qea_path)
         if path.exists():
             return path
 
-        for alias, real in QEAAnalyzer._PATH_ALIASES:
+        for alias, real in path_aliases:
             if qea_path.startswith(alias):
                 remapped = Path(real) / qea_path[len(alias) :]
                 if remapped.exists():
                     return remapped
 
         filename = path.name
-        for dir_path in QEAAnalyzer._FALLBACK_DIRS:
+        for dir_path in fallback_dirs:
             candidate = Path(dir_path) / filename
             if candidate.exists():
                 return candidate
 
-        for dir_path in QEAAnalyzer._FALLBACK_DIRS:
+        for dir_path in fallback_dirs:
             if not Path(dir_path).exists():
                 continue
             for f in Path(dir_path).iterdir():
@@ -824,18 +865,27 @@ class QEAAnalyzer:
             f"Searched: {qea_path}"
             + "".join(
                 f"\n  - {Path(real) / qea_path[len(alias) :]}"
-                for alias, real in QEAAnalyzer._PATH_ALIASES
+                for alias, real in path_aliases
                 if qea_path.startswith(alias)
             )
             + "".join(
                 f"\n  - {dir_path}/{filename}"
-                for dir_path in QEAAnalyzer._FALLBACK_DIRS
+                for dir_path in fallback_dirs
             )
         )
 
-    def __init__(self, qea_path: str = None):
+    def __init__(
+        self,
+        qea_path: str = None,
+        path_aliases: Optional[list[tuple[str, str]]] = None,
+        fallback_dirs: Optional[list[str]] = None,
+    ):
         """Open a QEA file (SQLite database)."""
-        self.qea_path = self._resolve_path(qea_path)
+        self.qea_path = self._resolve_path(
+            qea_path,
+            path_aliases=path_aliases,
+            fallback_dirs=fallback_dirs,
+        )
         self.conn = sqlite3.connect(str(self.qea_path))
         self.conn.row_factory = sqlite3.Row
         self._cache = {}
@@ -2072,25 +2122,37 @@ class Tools:
     class Valves:
         """Configuration (not needed for basic operation)."""
 
-        pass
+        qea_path_aliases: str = "\n".join(
+            f"{alias}={real}" for alias, real in DEFAULT_QEA_PATH_ALIASES
+        )
+        qea_fallback_dirs: str = "\n".join(DEFAULT_QEA_FALLBACK_DIRS)
+        qea_search_dirs: str = "\n".join(DEFAULT_QEA_SEARCH_DIRS)
 
     def __init__(self):
         self.valves = self.Valves()
 
     # ── PATH RESOLUTION ─────────────────────────────────────
 
-    _QEA_SEARCH_DIRS = [
-        "/app/backend/data",
-        "/mnt/data",
-        "/app/backend/data/external_files",
-    ]
+    def _get_path_config(
+        self,
+    ) -> tuple[list[tuple[str, str]], list[str], list[str]]:
+        path_aliases = _parse_path_aliases(
+            getattr(self.valves, "qea_path_aliases", None)
+        ) or list(DEFAULT_QEA_PATH_ALIASES)
+        fallback_dirs = _parse_config_lines(
+            getattr(self.valves, "qea_fallback_dirs", None)
+        ) or list(DEFAULT_QEA_FALLBACK_DIRS)
+        search_dirs = _parse_config_lines(
+            getattr(self.valves, "qea_search_dirs", None)
+        ) or list(DEFAULT_QEA_SEARCH_DIRS)
+        return path_aliases, fallback_dirs, search_dirs
 
-    @staticmethod
-    def _discover_qea_files() -> list:
+    def _discover_qea_files(self) -> list:
         """Auto-discover all .qea files in known upload directories."""
         files = []
         seen = set()
-        for dir_path in Tools._QEA_SEARCH_DIRS:
+        _, _, search_dirs = self._get_path_config()
+        for dir_path in search_dirs:
             if not os.path.isdir(dir_path):
                 continue
             try:
@@ -2118,22 +2180,28 @@ class Tools:
         files.sort(key=lambda f: f["size_mb"], reverse=True)
         return files
 
-    @staticmethod
-    def _resolve_qea_path(qea_path: Optional[str] = None) -> str:
+    def _resolve_qea_path(self, qea_path: Optional[str] = None) -> str:
         """Resolve QEA file path, auto-discovering if needed."""
+        path_aliases, fallback_dirs, _ = self._get_path_config()
         if qea_path:
             try:
-                resolved = QEAAnalyzer._resolve_path(qea_path)
+                resolved = QEAAnalyzer._resolve_path(
+                    qea_path,
+                    path_aliases=path_aliases,
+                    fallback_dirs=fallback_dirs,
+                )
                 return str(resolved)
             except FileNotFoundError:
                 pass
 
-        files = Tools._discover_qea_files()
+        files = self._discover_qea_files()
         if not files:
             raise FileNotFoundError(
                 "No QEA files found in upload directories. "
                 "Please upload a .qea file first."
             )
+        if not qea_path:
+            return files[0]["path"]
         # Try to resolve qea_path to the files
         return_path = ""
         if qea_path:
@@ -2146,6 +2214,14 @@ class Tools:
                 "No file found matching the provided qea_path: " + str(qea_path)
             )
         return return_path
+
+    def _create_analyzer(self, qea_path: str) -> QEAAnalyzer:
+        path_aliases, fallback_dirs, _ = self._get_path_config()
+        return QEAAnalyzer(
+            qea_path,
+            path_aliases=path_aliases,
+            fallback_dirs=fallback_dirs,
+        )
 
     async def list_available_qea_files(self) -> str:
         """
@@ -2180,7 +2256,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             stats = analyzer.get_model_statistics()
             analyzer.close()
             return json.dumps(stats, indent=2, ensure_ascii=False)
@@ -2209,7 +2285,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             results = analyzer.find_elements(
                 name=name,
                 object_type=object_type,
@@ -2235,7 +2311,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             detail = analyzer.get_element_detail(element_id)
             analyzer.close()
             return json.dumps(detail, indent=2, ensure_ascii=False, default=str)
@@ -2262,7 +2338,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             results = analyzer.get_relationships(
                 element_id=element_id,
                 connector_type=connector_type,
@@ -2287,7 +2363,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             results = analyzer.search_elements(query, limit)
             analyzer.close()
             return json.dumps(results, indent=2, ensure_ascii=False)
@@ -2303,7 +2379,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             tree = analyzer.get_package_tree()
             analyzer.close()
             return json.dumps(tree, indent=2, ensure_ascii=False)
@@ -2329,7 +2405,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             results = analyzer.find_elements_by_tag(tag_name, tag_value, limit)
             analyzer.close()
             return json.dumps(results, indent=2, ensure_ascii=False)
@@ -2345,7 +2421,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             diagrams = analyzer.get_diagrams()
             analyzer.close()
             return json.dumps(diagrams, indent=2, ensure_ascii=False)
@@ -2366,7 +2442,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             payload = analyzer.list_process_packages_and_activities(
                 package_path=package_path,
                 include_subpackages=include_subpackages,
@@ -2392,7 +2468,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             payload = analyzer.summarize_extracted_activity_graphs(
                 package_path=package_path,
                 include_subpackages=include_subpackages,
@@ -2424,7 +2500,7 @@ class Tools:
             if activity_id is None:
                 return json.dumps({"error": "activity_id is required"})
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             payload = analyzer.get_activity_diagram_process_graph(
                 activity_id=activity_id,
                 package_path=package_path,
@@ -2452,7 +2528,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             results = analyzer.get_naf_view_elements(view_type)
             analyzer.close()
             return json.dumps(results, indent=2, ensure_ascii=False)
@@ -2474,7 +2550,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             results = analyzer.execute_query(sql, limit)
             analyzer.close()
             return json.dumps(results, indent=2, ensure_ascii=False, default=str)
@@ -2494,7 +2570,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             if table_name:
                 schema = analyzer.get_table_schema(table_name)
             else:
@@ -2517,7 +2593,7 @@ class Tools:
         """
         try:
             path = self._resolve_qea_path(qea_path)
-            analyzer = QEAAnalyzer(path)
+            analyzer = self._create_analyzer(path)
             report = analyzer.export_element_report(element_name)
             analyzer.close()
             return json.dumps(report, indent=2, ensure_ascii=False, default=str)
