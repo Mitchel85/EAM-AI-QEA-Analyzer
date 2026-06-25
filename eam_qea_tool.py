@@ -70,6 +70,7 @@ def _parse_path_aliases(value: Any) -> list[tuple[str, str]]:
             aliases.append((alias, real))
     return aliases
 
+
 # ═══════════════════════════════════════════════════════════════
 # AAroN-DERIVED TABLE SCHEMA KNOWLEDGE
 # ═══════════════════════════════════════════════════════════════
@@ -830,11 +831,13 @@ class QEAAnalyzer:
 
     @staticmethod
     def _resolve_path(
-        qea_path: str = None,
+        qea_path: Optional[str] = None,
         path_aliases: Optional[list[tuple[str, str]]] = None,
         fallback_dirs: Optional[list[str]] = None,
     ) -> Path:
         """Resolve QEA file path with Open WebUI path alias awareness."""
+        if not qea_path:
+            raise ValueError("qea_path must be provided")
         path_aliases = path_aliases or DEFAULT_QEA_PATH_ALIASES
         fallback_dirs = fallback_dirs or DEFAULT_QEA_FALLBACK_DIRS
         path = Path(qea_path)
@@ -868,15 +871,12 @@ class QEAAnalyzer:
                 for alias, real in path_aliases
                 if qea_path.startswith(alias)
             )
-            + "".join(
-                f"\n  - {dir_path}/{filename}"
-                for dir_path in fallback_dirs
-            )
+            + "".join(f"\n  - {dir_path}/{filename}" for dir_path in fallback_dirs)
         )
 
     def __init__(
         self,
-        qea_path: str = None,
+        qea_path: Optional[str] = None,
         path_aliases: Optional[list[tuple[str, str]]] = None,
         fallback_dirs: Optional[list[str]] = None,
     ):
@@ -975,7 +975,7 @@ class QEAAnalyzer:
         )
 
         # Build tree
-        by_id = {}
+        by_id: dict[int, dict] = {}
         roots = []
         for p in packages:
             pid = p["Package_ID"]
@@ -1044,11 +1044,11 @@ class QEAAnalyzer:
 
     def find_elements(
         self,
-        name: str = None,
-        object_type: str = None,
-        stereotype: str = None,
-        package_id: int = None,
-        status: str = None,
+        name: Optional[str] = None,
+        object_type: Optional[str] = None,
+        stereotype: Optional[str] = None,
+        package_id: Optional[int] = None,
+        status: Optional[str] = None,
         limit: int = 200,
     ) -> list[dict]:
         """
@@ -1056,7 +1056,7 @@ class QEAAnalyzer:
         Maps directly to AAroN's EAObject columns.
         """
         conditions = []
-        params = []
+        params: list[str | int] = []
 
         if name:
             conditions.append("o.Name LIKE ?")
@@ -1210,8 +1210,6 @@ class QEAAnalyzer:
         """
         implicit = []
         object_type = element.get("Object_Type", "")
-        ea_guid = element.get("ea_guid", "")
-        object_id = element.get("Object_ID")
 
         # CONTAINS: Package → Object (AAroN emits this for EVERY object via Package_ID)
         package_id = element.get('Package_ID')
@@ -1374,7 +1372,7 @@ class QEAAnalyzer:
             "FROM t_object WHERE ea_guid LIKE ?",
             (f"%{clean}%",),
         )
-        return results[0] if results else None
+        return results[0] if results else {}
 
     def search_elements(self, query: str, limit: int = 50) -> list[dict]:
         """
@@ -1406,9 +1404,9 @@ class QEAAnalyzer:
 
     def get_relationships(
         self,
-        element_id: int = None,
-        connector_type: str = None,
-        stereotype: str = None,
+        element_id: Optional[int] = None,
+        connector_type: Optional[str] = None,
+        stereotype: Optional[str] = None,
         limit: int = 200,
     ) -> list[dict]:
         """
@@ -1416,7 +1414,7 @@ class QEAAnalyzer:
         Maps to AAroN's ConnectorProcessor which reads ALL EAConnector columns.
         """
         conditions = []
-        params = []
+        params: list[int | str] = []
 
         if element_id is not None:
             conditions.append("(c.Start_Object_ID = ? OR c.End_Object_ID = ?)")
@@ -1574,7 +1572,7 @@ class QEAAnalyzer:
         }
 
     def find_elements_by_tag(
-        self, tag_name: str, tag_value: str = None, limit: int = 200
+        self, tag_name: str, tag_value: Optional[str] = None, limit: int = 200
     ) -> list[dict]:
         """
         Find elements by their tagged values.
@@ -1968,7 +1966,7 @@ class QEAAnalyzer:
         include_subpackages: bool = True,
         max_items: int = 500,
     ) -> dict[str, Any]:
-        max_items = max(1, min(int(max_items), 2000))
+        max_items = max(1, min(max_items, 2000))
         activity_graphs = self.extract_operational_activity_graphs(
             package_path=package_path,
             include_subpackages=include_subpackages,
@@ -2013,8 +2011,8 @@ class QEAAnalyzer:
         max_nodes: int = 500,
         max_edges: int = 1000,
     ) -> dict[str, Any]:
-        max_nodes = max(1, min(int(max_nodes), 5000))
-        max_edges = max(1, min(int(max_edges), 10000))
+        max_nodes = max(1, min(max_nodes, 5000))
+        max_edges = max(1, min(max_edges, 10000))
 
         activity_graphs = self.extract_operational_activity_graphs(
             package_path=package_path,
@@ -2023,7 +2021,7 @@ class QEAAnalyzer:
 
         wanted = None
         for ag in activity_graphs:
-            if int(ag.activity_id) == int(activity_id):
+            if ag.activity_id == activity_id:
                 wanted = ag
                 break
 
@@ -2211,7 +2209,7 @@ class Tools:
                     break
         if not return_path:
             raise FileNotFoundError(
-                "No file found matching the provided qea_path: " + str(qea_path)
+                "No file found matching the provided qea_path: " + qea_path
             )
         return return_path
 
@@ -2246,7 +2244,7 @@ class Tools:
 
     # ── ANALYSIS FUNCTIONS ──────────────────────────────────
 
-    async def analyze_qea_statistics(self, qea_path: str = None) -> str:
+    async def analyze_qea_statistics(self, qea_path: Optional[str] = None) -> str:
         """
         Get comprehensive statistics about a QEA model.
         Shows element types, stereotypes, and counts.
@@ -2265,11 +2263,11 @@ class Tools:
 
     async def find_elements_in_qea(
         self,
-        qea_path: str = None,
-        name: str = None,
-        object_type: str = None,
-        stereotype: str = None,
-        package_id: int = None,
+        qea_path: Optional[str] = None,
+        name: Optional[str] = None,
+        object_type: Optional[str] = None,
+        stereotype: Optional[str] = None,
+        package_id: Optional[int] = None,
         limit: int = 50,
     ) -> str:
         """
@@ -2299,7 +2297,7 @@ class Tools:
             return json.dumps({"error": str(e)})
 
     async def get_element_detail_from_qea(
-        self, qea_path: str = None, element_id: int = None
+        self, qea_path: Optional[str] = None, element_id: Optional[int] = None
     ) -> str:
         """
         Get complete detail for one element: attributes, operations,
@@ -2309,6 +2307,8 @@ class Tools:
             qea_path: Path to the .qea file. If omitted, auto-discovers.
             element_id: The Object_ID of the element
         """
+        if element_id is None:
+            return json.dumps({"error": "element_id is required"})
         try:
             path = self._resolve_qea_path(qea_path)
             analyzer = self._create_analyzer(path)
@@ -2320,10 +2320,10 @@ class Tools:
 
     async def get_relationships_from_qea(
         self,
-        qea_path: str = None,
-        element_id: int = None,
-        connector_type: str = None,
-        stereotype: str = None,
+        qea_path: Optional[str] = None,
+        element_id: Optional[int] = None,
+        connector_type: Optional[str] = None,
+        stereotype: Optional[str] = None,
         limit: int = 100,
     ) -> str:
         """
@@ -2351,7 +2351,7 @@ class Tools:
             return json.dumps({"error": str(e)})
 
     async def search_qea_elements(
-        self, qea_path: str = None, query: str = "", limit: int = 50
+        self, qea_path: Optional[str] = None, query: str = "", limit: int = 50
     ) -> str:
         """
         Full-text search across element names and notes in a QEA file.
@@ -2370,7 +2370,7 @@ class Tools:
         except Exception as e:
             return json.dumps({"error": str(e)})
 
-    async def get_package_tree_from_qea(self, qea_path: str = None) -> str:
+    async def get_package_tree_from_qea(self, qea_path: Optional[str] = None) -> str:
         """
         Get the complete package/folder hierarchy from a QEA file.
 
@@ -2388,9 +2388,9 @@ class Tools:
 
     async def find_elements_by_tagged_value(
         self,
-        qea_path: str = None,
+        qea_path: Optional[str] = None,
         tag_name: str = "",
-        tag_value: str = None,
+        tag_value: Optional[str] = None,
         limit: int = 100,
     ) -> str:
         """
@@ -2412,7 +2412,7 @@ class Tools:
         except Exception as e:
             return json.dumps({"error": str(e)})
 
-    async def get_qea_diagrams(self, qea_path: str = None) -> str:
+    async def get_qea_diagrams(self, qea_path: Optional[str] = None) -> str:
         """
         List all diagrams in a QEA file with their element counts.
 
@@ -2458,7 +2458,7 @@ class Tools:
 
     async def list_extracted_activity_graphs(
         self,
-        qea_path: str = None,
+        qea_path: Optional[str] = None,
         package_path: str = "",
         include_subpackages: bool = True,
         max_items: int = 200,
@@ -2484,7 +2484,7 @@ class Tools:
 
     async def get_activity_diagram_process_graph(
         self,
-        qea_path: str = None,
+        qea_path: Optional[str] = None,
         activity_id: Optional[int] = None,
         package_path: str = "",
         include_subpackages: bool = True,
@@ -2517,7 +2517,7 @@ class Tools:
             return json.dumps({"error": str(e)})
 
     async def get_naf_view_elements_from_qea(
-        self, qea_path: str = None, view_type: str = "NAF-3"
+        self, qea_path: Optional[str] = None, view_type: str = "NAF-3"
     ) -> str:
         """
         Get elements belonging to a NAF view type (NAF-2 through NAF-7).
@@ -2536,7 +2536,7 @@ class Tools:
             return json.dumps({"error": str(e)})
 
     async def execute_qea_sql(
-        self, qea_path: str = None, sql: str = "", limit: int = 100
+        self, qea_path: Optional[str] = None, sql: str = "", limit: int = 100
     ) -> str:
         """
         Execute a read-only SQL query against a QEA file.
@@ -2558,7 +2558,7 @@ class Tools:
             return json.dumps({"error": str(e)})
 
     async def get_qea_table_schema(
-        self, qea_path: str = None, table_name: str = None
+        self, qea_path: Optional[str] = None, table_name: Optional[str] = None
     ) -> str:
         """
         Get the column schema for tables in a QEA file.
