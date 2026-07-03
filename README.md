@@ -1,4 +1,4 @@
-# EAM QEA Analyzer v0.4
+# EAM QEA Tool v0.4
 
 > **Stelle natürlichsprachliche Abfragen an ein Sparx-EA-Modell — lokal, in Open WebUI oder per MCP.**
 >
