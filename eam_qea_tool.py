@@ -352,10 +352,6 @@ def pg_safe_snippet(value: Any, max_chars: int = 500) -> str:
     return text if len(text) <= max_chars else text[:max_chars] + "..."
 
 
-def pg_node_evidence_id(activity_id: int, object_id: int) -> str:
-    return f"EA:Activity:{activity_id}:Object:{object_id}"
-
-
 def pg_to_int(value: Any) -> int:
     if value is None:
         return 0
@@ -747,11 +743,9 @@ def pg_build_activity_graph(
         lane = pg_resolve_lane_for_object(obj, object_index)
         graph.add_node(
             obj_id,
-            id=pg_node_evidence_id(activity_id, obj_id),
             object_id=obj_id,
             guid=obj.get("guid", ""),
             label=obj.get("label", ""),
-            normalized_label=pg_normalize_whitespace(obj.get("label", "")).lower(),
             object_type=obj.get("object_type", ""),
             stereotype=obj.get("stereotype", ""),
             lane=lane,
