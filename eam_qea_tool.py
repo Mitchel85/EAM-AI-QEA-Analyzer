@@ -299,28 +299,6 @@ NAF_VIEW_STEREOTYPES = {
 
 
 # Diagram-based activity process extraction constants (ported from local pipeline).
-DIAGRAM_ALLOWED_CONNECTOR_TYPES = {"ControlFlow", "StateFlow", "Transition"}
-ALLOWED_FLOW_NODE_TYPES = {"Action", "Decision", "Event"}
-
-BANNED_OBJECT_TYPES = {"Package", "Text", "Issue"}
-BANNED_STEREOTYPES = {
-    "Classification",
-    "ResourceRole",
-    "RequirementCategory",
-    "Viewpoint",
-    "Concern",
-    "OperationalConstraint",
-    "InformationElement",
-    "DataElement",
-    "FunctionalRequirement",
-    "OperationalRole",
-    "Project",
-    "Standard",
-    "OperationalPerformer",
-    "ActualProject",
-    "Recommendation",
-    "Finding",
-}
 
 
 MAX_PROCESS_RESPONSE_CHARS = 120000
@@ -537,15 +515,13 @@ def pg_is_allowed_diagram_flow_node(obj: Optional[dict[str, Any]]) -> bool:
         return False
     if pg_is_activity_partition(obj) or pg_is_lane_or_pool_node(obj):
         return False
-    return obj.get("object_type") in ALLOWED_FLOW_NODE_TYPES
+    return True
 
 
 def pg_is_banned_object(obj: Optional[dict[str, Any]]) -> bool:
-    return (
-        obj is None
-        or obj.get("object_type") in BANNED_OBJECT_TYPES
-        or obj.get("stereotype") in BANNED_STEREOTYPES
-    )
+    """Previously filtered out BANNED_STEREOTYPES/BANNED_OBJECT_TYPES
+    for graph database compatibility. Removed — no longer needed."""
+    return False
 
 
 def pg_is_gateway_node(data: dict[str, Any]) -> bool:
@@ -771,8 +747,6 @@ def pg_build_activity_graph(
         start = pg_to_int(row.get("Start_Object_ID"))
         end = pg_to_int(row.get("End_Object_ID"))
         connector_type = pg_clean_str(row.get("Connector_Type"))
-        if connector_type not in DIAGRAM_ALLOWED_CONNECTOR_TYPES:
-            continue
         if (
             start in visible_element_ids
             and end in visible_element_ids
