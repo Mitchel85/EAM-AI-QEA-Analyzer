@@ -38,9 +38,9 @@
 | Modellstatistik | *„Gib mir eine Statistik über alle Elementtypen im Modell"* |
 
 Der **EAM QEA Analyzer** ist ein KI-gestützter Assistent für Enterprise-Architekten,
-der das proprietäre Sparx-QEA-Format über eine natürlichsprachliche Schnittstelle
+der das QEA-Format (SQLite) über eine natürlichsprachliche Schnittstelle
 zugänglich macht. Das zugrundeliegende Tabellenwissen stammt aus **AAroN** —
-einem Neo4j-Plugin, das die undokumentierte QEA-Struktur vollständig abbildet.
+einem Neo4j-Plugin, das die QEA-Tabellenstruktur abbildet.
 
 > **Powered by AAroN (ArAMIS)** — [github.com/schmitze87/AAroN](https://github.com/schmitze87/AAroN) by [@schmitze87](https://github.com/schmitze87) (Markus Schmitz)
 >
@@ -50,7 +50,7 @@ einem Neo4j-Plugin, das die undokumentierte QEA-Struktur vollständig abbildet.
 
 ## Das Problem
 
-Sparx Enterprise Architect speichert Modelle in proprietären `.qea`-Dateien (SQLite-Datenbanken mit bis zu 100 Tabellen). Die Tabellenstruktur ist komplex, schlecht dokumentiert und enthält:
+Sparx Enterprise Architect speichert Modelle in `.qea`-Dateien (SQLite) (SQLite-Datenbanken mit bis zu 100 Tabellen). Die Tabellenstruktur ist komplex, schlecht dokumentiert und enthält:
 - **PDATA-Felder**, die je nach `Object_Type` unterschiedliche GUID-Verweise enthalten
 - **Implizite Beziehungen**, die NICHT in `t_connector` stehen, sondern aus Spalten wie `ParentID`, `Package_ID` und `PDATA1-3` abgeleitet werden
 - **`t_xref`-Einträge**, die Stereotyp-Auflösungen und Conveyed Items enthalten
@@ -59,7 +59,7 @@ Ein LLM, das ohne Domänenwissen SQLite-Queries auf die QEA-Datenbank anwendet, 
 
 ## Die Lösung
 
-Dieses Tool extrahiert das Wissen aus **AAroN** — einem Neo4j-Plugin, das für NAF-Architekturen entwickelt wurde und die proprietäre QEA-Struktur vollständig versteht. AAroNs 15+ Java-Processors wurden analysiert und in eine Python-Toolbox übersetzt.
+Dieses Tool extrahiert das Wissen aus **AAroN** — einem Neo4j-Plugin, das für NAF-Architekturen entwickelt wurde und die QEA-Struktur vollständig versteht. AAroNs 15+ Java-Processors wurden analysiert und in eine Python-Toolbox übersetzt.
 
 ### AAroN: Erkenntnisse zur QEA-Struktur
 
@@ -164,7 +164,7 @@ eam-qea-tool/
 
 | Wer | Was |
 |-----|-----|
-| [@schmitze87](https://github.com/schmitze87) (Markus Schmitz) | **AAroN** — Die gesamte Wissensbasis. 15+ Java-Processors, die die proprietäre QEA-Tabellenstruktur von Sparx EA dokumentieren. |
+| [@schmitze87](https://github.com/schmitze87) (Markus Schmitz) | **AAroN** — Die gesamte Wissensbasis. 15+ Java-Processors, die die QEA-Tabellenstruktur von Sparx EA dokumentieren. |
 | [@fkraemer-coder](https://github.com/fkraemer-coder) | **Lokaler Wrapper** — `webui_api.py`, entkoppelt das Tool von Open-WebUI. |
 |  Michael Estel (mit KI-Agent) | Analyse der AAroN-Processors, Extraktion des Tabellenwissens, Python-Portierung, MCP-Server & Integration |
 
@@ -177,3 +177,10 @@ Apache License 2.0
 ---
 
 *Open-WebUI (nativ): [openwebui_integration.md](openwebui_integration.md) | Lokaler Wrapper: [local_wrapper.md](local_wrapper.md) | MCP-Server: [mcp_server.md](mcp_server.md)*
+
+---
+
+## Rechtliches
+
+* **Keine Verbindung zu Sparx Systems.** Dieses Werkzeug ist ein unabhängiges, privat erstelltes Projekt. Es steht in keiner Verbindung zu Sparx Systems Pty Ltd., ist von dort **nicht** freigegeben oder zertifiziert und verwendet keine Logos oder Marken von Sparx Systems. Die Bezeichnungen „Sparx Systems", „Enterprise Architect" und „EA" werden ausschließlich **beschreibend** verwendet, um den Dateityp zu benennen, den dieses Werkzeug liest.
+* **Kein EA-Bestandteil:** Es werden keine Dateien, Bibliotheken, Lizenzschlüssel oder Programmbestandteile von Sparx Systems mitgeliefert oder umgangen. `.qea`-Dateien werden ausschließlich lesend als SQLite-Datenbank geöffnet.

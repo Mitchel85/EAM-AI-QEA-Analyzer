@@ -2,7 +2,7 @@
 EAM QEA Analyzer — Open WebUI Tool
 ===================================
 AAroN-informed QEA file analyzer for Sparx Enterprise Architect models.
-Extracts and leverages AAroN's deep knowledge of the proprietary QEA table structure.
+Extracts and leverages AAroN's deep knowledge of the dokumentierte SQLite-Struktur des QEA-Formats.
 
 Based on: https://github.com/schmitze87/AAroN (Apache 2.0)
 Knowledge extracted from AAroN's 15+ table processors and EA model classes.

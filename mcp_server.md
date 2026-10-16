@@ -148,7 +148,7 @@ LLM: [ruft get_activity_diagram_process_graph(activity_id=281)]
 | | MCP-Server | Open-WebUI nativ | webui_api.py |
 |---|---|---|---|
 | **Clients** | Open-WebUI, Claude, VS Code… | Nur Open-WebUI | Nur Open-WebUI |
-| **Protokoll** | Standard (MCP) | Proprietär (OWUI) | REST (OWUI-API) |
+| **Protokoll** | Standard (MCP) | EA-spezifisch (OWUI) | REST (OWUI-API) |
 | **RAG / Knowledge Base** | ❌ | ✅ | ✅ |
 | **Auto-Discovery** | ✅ (LLM sieht Tools automatisch) | ✅ | ❌ (manuell) |
 | **Lokal testbar** | ✅ | ❌ (OWUI nötig) | ✅ |

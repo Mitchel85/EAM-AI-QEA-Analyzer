@@ -6,7 +6,7 @@ Live-Demonstrationen des QEA-Analyzers am MASC-Architekturmodell (Multipurpose A
 
 | Datei | Beschreibung |
 |---|---|
-| `AAroN_Proof_MASC.pdf` | Nachweis aller 15 AAroN-proprietären QEA-Strukturen via QEAAnalyzer |
+| `AAroN_Proof_MASC.pdf` | Nachweis aller 15 AAroN-QEA-Strukturen via QEAAnalyzer |
 | `MASC_Operateur_Analyse.pdf` | Operateur-Perspektive: 28 Fähigkeiten + Einsatzbefehl-Prozesskette |
 | `Musterarchitektur_MASC.qea` | Sparx EA Architekturmodell (1.652 Elemente, 1.746 Beziehungen) |
 

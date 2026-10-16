@@ -7,7 +7,7 @@
 
 ## Übersicht
 
-Dieses Paket macht dein Open WebUI-Modell für QEA-Analysen **zielgenau** — statt ohne Domänenwissen SQLite-Queries auf die QEA-Datenbank anzuwenden, nutzt es das tiefe Wissen von AAroN über die proprietäre QEA-Tabellenstruktur von Sparx Enterprise Architect.
+Dieses Paket macht dein Open WebUI-Modell für QEA-Analysen **zielgenau** — statt ohne Domänenwissen SQLite-Queries auf die QEA-Datenbank anzuwenden, nutzt es das tiefe Wissen von AAroN über die QEA-Tabellenstruktur von Sparx Enterprise Architect.
 
 ### Warum ist das besser als euer aktueller Ansatz?
 
