@@ -74,8 +74,6 @@ def _parse_path_aliases(value: Any) -> list[tuple[str, str]]:
 # ═══════════════════════════════════════════════════════════════
 # AAroN-DERIVED TABLE SCHEMA KNOWLEDGE
 # ═══════════════════════════════════════════════════════════════
-# These mappings are extracted from AAroN's Java model classes
-# (EAObject.java, EAConnector.java, EAPackage.java, etc.)
 
 # NAF view type mapping (derived from NAF architecture knowledge)
 NAF_VIEW_STEREOTYPES = {
@@ -309,12 +307,6 @@ def pg_is_allowed_diagram_flow_node(obj: Optional[dict[str, Any]]) -> bool:
     return True
 
 
-def pg_is_banned_object(obj: Optional[dict[str, Any]]) -> bool:
-    """Previously filtered out BANNED_STEREOTYPES/BANNED_OBJECT_TYPES
-    for graph database compatibility. Removed — no longer needed."""
-    return False
-
-
 def pg_is_gateway_node(data: dict[str, Any]) -> bool:
     label = pg_clean_str(data.get("label"))
     return (
@@ -503,8 +495,6 @@ def pg_build_activity_graph(
         obj_id = pg_to_int(dobj.get("element_id"))
         obj = object_index.get(obj_id, {})
         if not pg_is_allowed_diagram_flow_node(obj):
-            continue
-        if pg_is_banned_object(obj):
             continue
         visible_element_ids.add(obj_id)
         lane = pg_resolve_lane_for_object(obj, object_index)
@@ -1298,8 +1288,6 @@ class QEAAnalyzer:
     def get_table_schema(self, table_name: str) -> list[dict]:
         """Get the schema (column names and types) for any table."""
         return self._query(f"PRAGMA table_info({table_name})")
-
-    # ── ADVANCED: DIAGRAM ANALYSIS ─────────────────────────
 
     # ── PROCESS DISCOVERY & EXTRACTION (DIAGRAM-BASED) ─────
 

@@ -50,7 +50,7 @@ einem Neo4j-Plugin, das die QEA-Tabellenstruktur abbildet.
 
 ## Das Problem
 
-Sparx Enterprise Architect speichert Modelle in `.qea`-Dateien (SQLite) (SQLite-Datenbanken mit bis zu 100 Tabellen). Die Tabellenstruktur ist komplex, schlecht dokumentiert und enthält:
+Sparx Enterprise Architect speichert Modelle in `.qea`-Dateien (SQLite-Datenbanken mit bis zu 100 Tabellen). Die Tabellenstruktur ist komplex, schlecht dokumentiert und enthält:
 - **PDATA-Felder**, die je nach `Object_Type` unterschiedliche GUID-Verweise enthalten
 - **Implizite Beziehungen**, die NICHT in `t_connector` stehen, sondern aus Spalten wie `ParentID`, `Package_ID` und `PDATA1-3` abgeleitet werden
 - **`t_xref`-Einträge**, die Stereotyp-Auflösungen und Conveyed Items enthalten
@@ -106,7 +106,7 @@ Extrahiert BPMN-artige Prozessgraphen direkt aus Activity-Diagrammen.
 | 2. Übersicht | `list_extracted_activity_graphs` — kompakte Liste aller Prozessgraphen |
 | 3. Detail | `get_activity_diagram_process_graph(activity_id=...)` — voller Graph mit Nodes & Edges |
 
-**Arbeitsweise:** Liest `t_diagram` + `t_diagramobjects` + `t_diagramlinks`, filtert gezielt ControlFlow/StateFlow/Transition-Kanten, erkennt Lanes, löst Gateways auf.
+**Arbeitsweise:** Liest `t_diagram` + `t_diagramobjects` + `t_diagramlinks`, übernimmt alle sichtbaren Diagramm-Kanten, erkennt Lanes, löst Gateways auf.
 
 **Abhängigkeiten:** `pandas`, `networkx` (werden beim Laden des Tools in Open WebUI automatisch installiert).
 
@@ -131,7 +131,7 @@ Ohne diese Dateien arbeitet der QEA-Analyzer als reiner QEA-Parser. Mit ihnen wi
 
 ```
 eam-qea-tool/
-├── eam_qea_tool.py              # Gemeinsame Codebasis (~95 KB)
+├── eam_qea_tool.py              # Gemeinsame Codebasis (~78 KB)
 ├── webui_api.py                 # Lokaler Wrapper (v0.3)
 ├── mcp_server.py                # MCP-Server (NEU v0.4)
 ├── system_prompt.md             # System Prompt für alle Modi
@@ -140,7 +140,6 @@ eam-qea-tool/
 ├── mcp_server.md                # Anleitung: MCP-Server (NEU v0.4)
 ├── requirements-mcp.txt         # Dependencies für MCP-Server
 ├── Demo-Output/                 # Beispiel-Ausgaben
-├── docs/plans/                  # Implementierungspläne
 ├── LICENSE                      # Apache 2.0
 └── README.md                    # Diese Datei
 ```
