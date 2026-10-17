@@ -77,211 +77,6 @@ def _parse_path_aliases(value: Any) -> list[tuple[str, str]]:
 # These mappings are extracted from AAroN's Java model classes
 # (EAObject.java, EAConnector.java, EAPackage.java, etc.)
 
-# Processing order matters! (from SparxSQLiteConverter.java:38-63)
-TABLE_PROCESSING_ORDER = [
-    "t_system",  # System info (project GUID, name)
-    "t_package",  # Package hierarchy FIRST
-    "t_diagram",  # Diagrams
-    "t_object",  # Elements/Objects (the core table)
-    "t_objectproperties",  # Tagged Values on objects
-    "t_objectconstraints",
-    "t_connector",  # Relationships between objects
-    "t_connectortag",  # Tagged Values on connectors
-    "t_connectorconstraints",
-    "t_diagramobjects",  # Objects on diagrams
-    "t_diagramlinks",  # Connector styling on diagrams
-    "t_operation",  # Operations/Methods
-    "t_operationtag",
-    "t_operationparams",
-    "t_attribute",  # Attributes
-    "t_attributetag",
-    "t_attributeconstraints",
-    "t_xref",  # Cross-references (stereotypes, conveyed items, etc.)
-]
-
-# === Core table schemas (AAroN-derived) ===
-
-# t_object: The main element table (EAObject.java)
-# Object_Type values: Class, Component, Node, Package, Requirement,
-#   Action, Object, Part, Port, Interface, Activity, State, Event,
-#   UseCase, Actor, Artifact, DeploymentSpec, Collaboration, etc.
-OBJECT_KEY_COLUMNS = [
-    "Object_ID",
-    "Object_Type",
-    "Name",
-    "Alias",
-    "Author",
-    "Note",
-    "Stereotype",
-    "Package_ID",
-    "ParentID",
-    "ea_guid",
-    "PDATA1",
-    "PDATA2",
-    "PDATA3",
-    "PDATA4",
-    "PDATA5",
-    "Classifier",
-    "Classifier_guid",
-    "Status",
-    "Phase",
-    "Complexity",
-    "Version",
-    "CreatedDate",
-    "ModifiedDate",
-    "Visibility",
-    "Scope",
-    "Abstract",
-    "IsRoot",
-    "IsLeaf",
-    "IsActive",
-    "IsSpec",
-    "Multiplicity",
-    "RunState",
-    "Cardinality",
-    "Concurrency",
-    "Persistence",
-    "GenType",
-    "GenFile",
-    "Header1",
-    "Header2",
-    "StyleEx",
-    "StateFlags",
-    "ActionFlags",
-    "EventFlags",
-    "PackageFlags",
-    "TPos",
-    "Tagged",
-    "NType",
-]
-
-# t_connector: Relationships between objects (EAConnector.java)
-CONNECTOR_KEY_COLUMNS = [
-    "Connector_ID",
-    "Name",
-    "Connector_Type",
-    "Stereotype",
-    "Direction",
-    "Notes",
-    "Start_Object_ID",
-    "End_Object_ID",
-    "SourceRole",
-    "SourceRoleType",
-    "SourceRoleNote",
-    "DestRole",
-    "DestRoleType",
-    "DestRoleNote",
-    "SourceCard",
-    "DestCard",
-    "SourceAccess",
-    "DestAccess",
-    "SourceElement",
-    "DestElement",
-    "SourceContainment",
-    "DestContainment",
-    "SourceIsAggregate",
-    "DestIsAggregate",
-    "SourceIsOrdered",
-    "DestIsOrdered",
-    "SourceIsNavigable",
-    "DestIsNavigable",
-    "SourceChangeable",
-    "DestChangeable",
-    "SourceConstraint",
-    "DestConstraint",
-    "SourceQualifier",
-    "DestQualifier",
-    "SourceStereotype",
-    "DestStereotype",
-    "SourceStyle",
-    "DestStyle",
-    "PDATA1",
-    "PDATA2",
-    "PDATA3",
-    "PDATA4",
-    "PDATA5",
-    "DiagramID",
-    "ea_guid",
-    "IsRoot",
-    "IsLeaf",
-    "IsSpec",
-    "IsSignal",
-    "IsStimulus",
-    "StateFlags",
-    "ActionFlags",
-    "EventFlags",
-    "StyleEx",
-    "VirtualInheritance",
-    "LinkAccess",
-    "Top_Start_Label",
-    "Top_Mid_Label",
-    "Top_End_Label",
-    "Btm_Start_LAbel",
-    "Btm_Mid_Label",
-    "Btm_End_Label",
-    "DispatchAction",
-    "Target2",
-]
-
-# AAroN-DISCOVERED IMPLICIT RELATIONSHIPS (ObjectProcessor.java:155-292)
-# These are NOT stored as t_connector rows but derived from t_object column logic
-IMPLICIT_RELATIONSHIPS = {
-    "CONTAINS": {
-        "from": "Package",
-        "to": "Object",
-        "source": "t_package.Package_ID → t_object.Package_ID",
-        "note": "Every object belongs to a package via Package_ID",
-    },
-    "BEHAVIOUR": {
-        "from": "Action",
-        "to": "Behaviour-Element",
-        "source": "t_object.PDATA1 → t_object.ea_guid (when Object_Type='Action')",
-        "note": "Action elements reference their behavioural element via PDATA1 GUID",
-    },
-    "CLASSIFIER": {
-        "from": "Object/Action",
-        "to": "Classifier",
-        "source": "t_object.Classifier_guid → t_object.ea_guid",
-        "note": "Objects typed by a classifier (e.g., InstanceOf in UML)",
-    },
-    "INSTANCE_OF": {
-        "from": "Object/Part/Port",
-        "to": "Classifier-Element",
-        "source": "t_object.PDATA1 → t_object.ea_guid",
-        "note": "Parts/Ports reference their type via PDATA1 GUID",
-    },
-    "REUSAGE": {
-        "from": "Part/Port",
-        "to": "Reused-Element",
-        "source": "t_object.PDATA3 → t_object.ea_guid",
-        "note": "Parts reference their reused element via PDATA3 GUID",
-    },
-    "HAS_PORT": {
-        "from": "Parent-Element",
-        "to": "Port",
-        "source": "t_object.ParentID → t_object.Object_ID (when Object_Type='Port')",
-        "note": "Ports belong to a parent element via ParentID",
-    },
-    "HAS_PART": {
-        "from": "Parent-Element",
-        "to": "Part",
-        "source": "t_object.ParentID → t_object.Object_ID (when Object_Type='Part')",
-        "note": "Parts belong to a parent via ParentID",
-    },
-    "EMBEDS": {
-        "from": "Parent-Element",
-        "to": "Child-Element",
-        "source": "t_object.ParentID → t_object.Object_ID (generic embedding)",
-        "note": "Generic parent-child embedding for any Object_Type",
-    },
-    "HAS_PARENT": {
-        "from": "Child-Element",
-        "to": "Parent-Element",
-        "source": "t_object.ParentID → t_object.Object_ID (inverse of EMBEDS)",
-        "note": "Inverse embedding relationship",
-    },
-}
-
 # NAF view type mapping (derived from NAF architecture knowledge)
 NAF_VIEW_STEREOTYPES = {
     "NAF-2": ["Ov-2", "OpNode", "Needline", "InformationExchange"],
@@ -319,10 +114,6 @@ def pg_clean_str(value: Any) -> str:
         return ""
     s = str(value)
     return "" if s.lower() == "nan" else s
-
-
-def pg_normalize_whitespace(value: Any) -> str:
-    return " ".join(pg_clean_str(value).split())
 
 
 def pg_safe_snippet(value: Any, max_chars: int = 500) -> str:
@@ -856,7 +647,6 @@ class QEAAnalyzer:
         )
         self.conn = sqlite3.connect(str(self.qea_path))
         self.conn.row_factory = sqlite3.Row
-        self._cache = {}
 
     def close(self):
         """Close the database connection."""
@@ -982,14 +772,6 @@ class QEAAnalyzer:
         return self._query(
             "SELECT Object_Type, COUNT(*) as count FROM t_object "
             "GROUP BY Object_Type ORDER BY count DESC"
-        )
-
-    def list_stereotypes(self) -> list[dict]:
-        """List all stereotypes with counts."""
-        return self._query(
-            "SELECT Stereotype, Object_Type, COUNT(*) as count FROM t_object "
-            "WHERE Stereotype IS NOT NULL AND Stereotype != '' "
-            "GROUP BY Stereotype, Object_Type ORDER BY count DESC"
         )
 
     def get_diagrams(self) -> list[dict]:
@@ -1427,117 +1209,7 @@ class QEAAnalyzer:
             tuple(params) + (limit,),
         )
 
-    def find_relationship_path(
-        self, start_id: int, end_id: int, max_depth: int = 5
-    ) -> list[dict]:
-        """
-        Find paths between two elements through t_connector.
-        Uses iterative BFS (not recursive — SQLite limitation).
-        """
-        visited = {start_id}
-        # BFS queue: (current_id, path)
-        queue = [(start_id, [])]
-
-        for _ in range(max_depth):
-            next_queue = []
-            for curr_id, path in queue:
-                # Find all connected elements
-                neighbors = self._query(
-                    """
-                    SELECT 
-                        CASE WHEN Start_Object_ID = ? THEN End_Object_ID 
-                             ELSE Start_Object_ID END as neighbor_id,
-                        Connector_ID, Name, Connector_Type, Stereotype,
-                        Start_Object_ID, End_Object_ID
-                    FROM t_connector
-                    WHERE Start_Object_ID = ? OR End_Object_ID = ?
-                """,
-                    (curr_id, curr_id, curr_id),
-                )
-
-                for n in neighbors:
-                    neighbor = n["neighbor_id"]
-                    if neighbor == end_id:
-                        # Found path!
-                        full_path = path + [
-                            {
-                                "from_id": n["Start_Object_ID"],
-                                "to_id": n["End_Object_ID"],
-                                "connector_id": n["Connector_ID"],
-                                "name": n["Name"],
-                                "type": n["Connector_Type"],
-                                "stereotype": n["Stereotype"],
-                            }
-                        ]
-                        # Resolve names
-                        for step in full_path:
-                            step["from_name"] = self._get_object_name(step["from_id"])
-                            step["to_name"] = self._get_object_name(step["to_id"])
-                        return full_path
-
-                    if neighbor not in visited:
-                        visited.add(neighbor)
-                        next_queue.append(
-                            (
-                                neighbor,
-                                path
-                                + [
-                                    {
-                                        "from_id": n["Start_Object_ID"],
-                                        "to_id": n["End_Object_ID"],
-                                        "connector_id": n["Connector_ID"],
-                                        "name": n["Name"],
-                                        "type": n["Connector_Type"],
-                                        "stereotype": n["Stereotype"],
-                                    }
-                                ],
-                            )
-                        )
-            queue = next_queue
-
-        return []  # No path found within max_depth
-
-    def _get_object_name(self, object_id: int) -> str:
-        r = self._query("SELECT Name FROM t_object WHERE Object_ID = ?", (object_id,))
-        return r[0]["Name"] if r else f"ID:{object_id}"
-
     # ── TAGGED VALUES (NAF-CRITICAL — AAroN's TaggedValueHelper) ──
-
-    def get_tagged_values(self, element_id: int) -> dict:
-        """
-        Get all tagged values for an element.
-        In NAF architectures, these carry critical metadata
-        (e.g., operational attributes, capability measures, standards).
-
-        AAroN processes these via TaggedValueHelper — either as
-        properties on the element (AS_PROPERTY mode) or as
-        separate nodes (AS_NODE mode).
-        """
-        # Object tagged values
-        obj_tags = self._query(
-            "SELECT PropertyID, Property, Value, Notes, ea_guid "
-            "FROM t_objectproperties WHERE Object_ID = ? ORDER BY Property",
-            (element_id,),
-        )
-
-        # Also check connector tags if element has connectors
-        conn_tags = self._query(
-            """
-            SELECT ct.PropertyID, ct.Property, ct.VALUE as Value,
-                   ct.NOTES as Notes, ct.ea_guid,
-                   c.Connector_ID, c.Name as Connector_Name
-            FROM t_connectortag ct
-            JOIN t_connector c ON ct.ElementID = c.Connector_ID
-            WHERE c.Start_Object_ID = ? OR c.End_Object_ID = ?
-            ORDER BY ct.Property
-        """,
-            (element_id, element_id),
-        )
-
-        return {
-            "element_tags": obj_tags,
-            "connector_tags": conn_tags,
-        }
 
     def find_elements_by_tag(
         self, tag_name: str, tag_value: Optional[str] = None, limit: int = 200
@@ -1578,16 +1250,6 @@ class QEAAnalyzer:
                 (tag_name, limit),
             )
 
-    def list_all_tag_names(self) -> list[dict]:
-        """List all unique tagged value property names with counts."""
-        return self._query("""
-            SELECT Property, COUNT(*) as usage_count,
-                   COUNT(DISTINCT Object_ID) as element_count
-            FROM t_objectproperties
-            GROUP BY Property
-            ORDER BY usage_count DESC
-        """)
-
     # ── NAF-SPECIFIC VIEWS ──────────────────────────────────
 
     def get_naf_view_elements(self, view_type: str) -> list[dict]:
@@ -1610,78 +1272,6 @@ class QEAAnalyzer:
         """,
             tuple(stereotypes),
         )
-
-    def get_capability_hierarchy(self) -> list[dict]:
-        """
-        NAF-3: Get capability composition hierarchy.
-        Finds elements with Capability stereotype and their
-        composition/aggregation relationships.
-        """
-        capabilities = self._query("""
-            SELECT o.Object_ID, o.Name, o.Note, o.ea_guid,
-                   o.Status, o.Phase, o.Stereotype
-            FROM t_object o
-            WHERE o.Stereotype LIKE '%Capability%'
-            ORDER BY o.Name
-        """)
-
-        result = []
-        for cap in capabilities:
-            # Find sub-capabilities via Composition/Aggregation connectors
-            sub_caps = self._query(
-                """
-                SELECT o2.Object_ID, o2.Name, o2.Stereotype,
-                       c.Connector_Type, c.Name as Relationship_Name
-                FROM t_connector c
-                JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID
-                WHERE c.Start_Object_ID = ?
-                  AND (c.Connector_Type IN ('Composition', 'Aggregation', 'Generalization'))
-                  AND o2.Stereotype LIKE '%Capability%'
-            """,
-                (cap["Object_ID"],),
-            )
-
-            cap["sub_capabilities"] = sub_caps
-            result.append(cap)
-
-        return result
-
-    def get_information_flows(self) -> list[dict]:
-        """
-        NAF-2/NAF-6: Get information exchanges/flows.
-        Uses AAroN's XRefProcessor knowledge: conveyed items
-        are in t_xref with Behavior='conveyed'.
-        """
-        # Connectors typed as InformationFlow
-        flows = self._query("""
-            SELECT c.Connector_ID, c.Name, c.Connector_Type, c.Stereotype,
-                   c.Notes, c.ea_guid,
-                   o1.Name as Source_Name, o1.Object_Type as Source_Type,
-                   o2.Name as Target_Name, o2.Object_Type as Target_Type,
-                   c.SourceCard, c.DestCard
-            FROM t_connector c
-            JOIN t_object o1 ON c.Start_Object_ID = o1.Object_ID
-            JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID
-            WHERE c.Connector_Type = 'InformationFlow'
-               OR c.Stereotype LIKE '%InformationFlow%'
-               OR c.Stereotype LIKE '%Needline%'
-            ORDER BY o1.Name
-        """)
-
-        # For each flow, try to find conveyed items via t_xref
-        for flow in flows:
-            conveyed = self._query(
-                """
-                SELECT Description, Behavior, Client, Supplier
-                FROM t_xref
-                WHERE Name = 'MOFProps' AND Behavior = 'conveyed'
-                  AND Client LIKE ?
-            """,
-                (f"%{flow['ea_guid']}%",),
-            )
-            flow["conveyed_items_xref"] = conveyed
-
-        return flows
 
     # ── RAW SQL FOR ADVANCED QUERIES ───────────────────────
 
@@ -1710,52 +1300,6 @@ class QEAAnalyzer:
         return self._query(f"PRAGMA table_info({table_name})")
 
     # ── ADVANCED: DIAGRAM ANALYSIS ─────────────────────────
-
-    def get_diagram_content(self, diagram_id: int) -> dict:
-        """
-        Get all objects and connectors on a diagram.
-        Uses AAroN's knowledge:
-        - t_diagramobjects maps Object_ID → Diagram_ID with position
-        - t_diagramlinks maps Connector_ID → DiagramID with geometry
-        """
-        diagram = self._query(
-            "SELECT * FROM t_diagram WHERE Diagram_ID = ?", (diagram_id,)
-        )
-        if not diagram:
-            return {"error": f"Diagram {diagram_id} not found"}
-
-        result = dict(diagram[0])
-
-        # Objects on diagram with position
-        result["objects"] = self._query(
-            """
-            SELECT do.Diagram_ID, do.Object_ID, do.RectTop, do.RectLeft,
-                   do.RectRight, do.RectBottom, do.Sequence, do.ObjectStyle,
-                   o.Name, o.Object_Type, o.Stereotype, o.ea_guid
-            FROM t_diagramobjects do
-            JOIN t_object o ON do.Object_ID = o.Object_ID
-            WHERE do.Diagram_ID = ?
-            ORDER BY do.Sequence
-        """,
-            (diagram_id,),
-        )
-
-        # Connectors on diagram
-        result["connectors"] = self._query(
-            """
-            SELECT dl.ConnectorID, dl.Geometry, dl.Style, dl.Hidden,
-                   c.Name, c.Connector_Type, c.Stereotype, c.ea_guid,
-                   o1.Name as Source_Name, o2.Name as Target_Name
-            FROM t_diagramlinks dl
-            JOIN t_connector c ON dl.ConnectorID = c.Connector_ID
-            JOIN t_object o1 ON c.Start_Object_ID = o1.Object_ID
-            JOIN t_object o2 ON c.End_Object_ID = o2.Object_ID
-            WHERE dl.DiagramID = ?
-        """,
-            (diagram_id,),
-        )
-
-        return result
 
     # ── PROCESS DISCOVERY & EXTRACTION (DIAGRAM-BASED) ─────
 
@@ -2170,11 +1714,10 @@ class Tools:
             return files[0]["path"]
         # Try to resolve qea_path to the files
         return_path = ""
-        if qea_path:
-            for f in files:
-                if os.path.basename(f["path"]) == os.path.basename(qea_path):
-                    return_path = f["path"]
-                    break
+        for f in files:
+            if os.path.basename(f["path"]) == os.path.basename(qea_path):
+                return_path = f["path"]
+                break
         if not return_path:
             raise FileNotFoundError(
                 "No file found matching the provided qea_path: " + qea_path

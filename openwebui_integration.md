@@ -218,7 +218,7 @@ async def meine_spezialanalyse(self, qea_path: str, parameter: str) -> str:
 | "QEA file not found" | Absoluten Pfad verwenden, Volume-Mount prüfen |
 | Tool erscheint nicht in Open WebUI | Tool-Datei im richtigen Verzeichnis? Open WebUI neustarten |
 | SQL-Fehler bei execute_qea_sql | Nur SELECT erlaubt; Tabellennamen prüfen |
-| Keine Tagged Values gefunden | Manche Modelle nutzen t_objectproperties nicht — prüfe mit `list_all_tag_names()` via SQL |
+| Keine Tagged Values gefunden | Manche Modelle nutzen t_objectproperties nicht — prüfe die Spalte via `execute_qea_sql` (`SELECT DISTINCT Property FROM t_objectproperties`) |
 | Langsame Antworten bei großen Modellen | LIMIT reduzieren, gezielter filtern |
 
 ---
