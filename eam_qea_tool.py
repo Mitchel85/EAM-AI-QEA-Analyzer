@@ -865,7 +865,7 @@ class QEAAnalyzer:
 
         # Attributes (t_attribute — AAroN AttributeProcessor)
         result["attributes"] = self._query(
-            "SELECT ID, Name, Type, Stereotype, Scope, Visibility, "
+            "SELECT ID, Name, Type, Stereotype, Scope, "
             "Notes, ea_guid, LowerBound, UpperBound, IsStatic, "
             "IsOrdered, IsCollection, AllowDuplicates "
             "FROM t_attribute WHERE Object_ID = ? ORDER BY Pos",
