@@ -63,7 +63,7 @@ In `claude_desktop_config.json`:
   "mcpServers": {
     "eam-qea-analyzer": {
       "command": "python3",
-      "args": ["/pfad/zu/eam-qea-tool/mcp_server.py"]
+      "args": ["/pfad/zu/EAM-AI-QEA-Analyzer/mcp_server.py"]
     }
   }
 }

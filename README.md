@@ -112,7 +112,7 @@ Extrahiert BPMN-artige Prozessgraphen direkt aus Activity-Diagrammen.
 
 ### ADMBw-NAFv4-Topologie-Validierung (optional)
 
-Für Architekten, die im Bw-Umfeld mit NAFv4-Modellen arbeiten, kann der QEA-Analyzer extrahierte Beziehungen automatisch gegen die ADMBw-Topologieregeln validieren. Dazu werden die vier Knowledge-Dateien aus dem [ADMBw-Extraktor](https://github.com/Mitchel85/EAM-AI-ADMBw-Extractor) zusätzlich in die Open WebUI Knowledge-Base geladen:
+Für Architekten, die im Bw-Umfeld mit NAFv4-Modellen arbeiten, kann der QEA-Analyzer extrahierte Beziehungen automatisch gegen die ADMBw-Topologieregeln validieren. Dazu werden die vier Knowledge-Dateien aus dem [EAM-AI-ADMBw-Extractor](https://github.com/Mitchel85/EAM-AI-ADMBw-Extractor) zusätzlich in die Open WebUI Knowledge-Base geladen:
 
 | Datei | Zweck |
 |-------|-------|
@@ -130,7 +130,7 @@ Ohne diese Dateien arbeitet der QEA-Analyzer als reiner QEA-Parser. Mit ihnen wi
 ## Struktur
 
 ```
-eam-qea-tool/
+EAM-AI-QEA-Analyzer/
 ├── eam_qea_tool.py              # Gemeinsame Codebasis (~78 KB)
 ├── webui_api.py                 # Lokaler Wrapper (v0.3)
 ├── mcp_server.py                # MCP-Server (NEU v0.4)

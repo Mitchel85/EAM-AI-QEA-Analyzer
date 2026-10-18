@@ -1,6 +1,6 @@
 # Lokaler Wrapper — Einrichtungsanleitung
 
-> **webui_api.py** lässt dich das eam-qea-tool lokal betreiben und Open-WebUI nur noch als LLM-Dienstleister per API ansprechen.
+> **webui_api.py** lässt dich das EAM-AI-QEA-Analyzer lokal betreiben und Open-WebUI nur noch als LLM-Dienstleister per API ansprechen.
 > Keine Installation in Open-WebUI nötig — du entwickelst und testest direkt in PyCharm oder im Terminal.
 
 ---
@@ -71,7 +71,7 @@ QEA_PATH = "/data/qea-models/NAF_Architektur.qea"
 ## Nutzung
 
 ```bash
-cd eam-qea-tool/
+cd EAM-AI-QEA-Analyzer/
 python webui_api.py
 ```
 
