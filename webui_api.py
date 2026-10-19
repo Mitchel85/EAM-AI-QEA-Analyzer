@@ -21,12 +21,20 @@ TOOL_DEFS = [
     {
         "type": "function",
         "function": {
+            "name": "list_available_qea_files",
+            "description": "List all QEA files found in the configured search directories (newest first).",
+            "parameters": {"type": "object", "properties": {}},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "analyze_qea_statistics",
-            "description": "Get model statistics from QEA.",
+            "description": "Get model statistics from QEA: element/package/connector counts, element types and stereotypes.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "qea_path": {"type": "string"}
+                    "qea_path": {"type": "string", "description": "Optional path to the .qea file; auto-discovers the most recently modified file when omitted."},
                 },
             },
         },
@@ -35,7 +43,7 @@ TOOL_DEFS = [
         "type": "function",
         "function": {
             "name": "find_elements_in_qea",
-            "description": "Find elements by name/type/stereotype.",
+            "description": "Find elements by name, type, stereotype, or package. All filters optional.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -53,7 +61,7 @@ TOOL_DEFS = [
         "type": "function",
         "function": {
             "name": "get_element_detail_from_qea",
-            "description": "Get full detail for one element by Object_ID.",
+            "description": "Get full detail for one element by Object_ID: attributes, operations, relationships, tagged values, diagrams.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -67,8 +75,96 @@ TOOL_DEFS = [
     {
         "type": "function",
         "function": {
+            "name": "get_relationships_from_qea",
+            "description": "Get relationships/connectors, optionally filtered by element, type, or stereotype.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "element_id": {"type": "integer"},
+                    "connector_type": {"type": "string"},
+                    "stereotype": {"type": "string"},
+                    "limit": {"type": "integer"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_qea_elements",
+            "description": "Full-text search across element names and notes.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "query": {"type": "string"},
+                    "limit": {"type": "integer"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_package_tree_from_qea",
+            "description": "Get the complete package/folder hierarchy tree.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "find_elements_by_tagged_value",
+            "description": "Find elements by tagged value name and/or value. Essential for NAF metadata.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "tag_name": {"type": "string"},
+                    "tag_value": {"type": "string"},
+                    "limit": {"type": "integer"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_qea_diagrams",
+            "description": "List all diagrams with their element counts.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_naf_view_elements_from_qea",
+            "description": "Get elements belonging to a NAF view (NAF-2 through NAF-7).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "view_type": {"type": "string", "enum": ["NAF-2", "NAF-3", "NAF-4", "NAF-5", "NAF-6", "NAF-7"]},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "list_process_packages_and_activities",
-            "description": "List packages/activities for process extraction.",
+            "description": "Discover packages and Activity elements for process extraction. Call before extracting graphs.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -83,8 +179,24 @@ TOOL_DEFS = [
     {
         "type": "function",
         "function": {
+            "name": "list_extracted_activity_graphs",
+            "description": "Get compact summaries of all extractable process graphs from Activity diagrams.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "package_path": {"type": "string"},
+                    "include_subpackages": {"type": "boolean"},
+                    "max_items": {"type": "integer"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "get_activity_diagram_process_graph",
-            "description": "Get one extracted process graph by activity_id.",
+            "description": "Extract a detailed BPMN-like process graph for one Activity diagram. Requires activity_id.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -96,6 +208,51 @@ TOOL_DEFS = [
                     "max_edges": {"type": "integer"},
                 },
                 "required": ["activity_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "execute_qea_sql",
+            "description": "Execute a read-only SQL query against the QEA database. Only SELECT allowed; result is always capped.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "sql": {"type": "string"},
+                    "limit": {"type": "integer"},
+                },
+                "required": ["sql"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_qea_table_schema",
+            "description": "Inspect database schema: list all tables, or get columns for a specific table.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "table_name": {"type": "string"},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "export_qea_element_report",
+            "description": "Generate a comprehensive report for a named element: details, relationships, tagged values, diagrams.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "qea_path": {"type": "string"},
+                    "element_name": {"type": "string"},
+                },
+                "required": ["element_name"],
             },
         },
     },

@@ -22,6 +22,7 @@ import os
 import re
 import html
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Any
 
@@ -1688,16 +1689,21 @@ class Tools:
                     seen.add(path)
                     stat = entry.stat()
                     size_mb = stat.st_size / (1024 * 1024)
+                    mtime = stat.st_mtime
                     files.append(
                         {
                             "name": name,
                             "path": path,
                             "size_mb": round(size_mb, 2),
+                            "mtime": mtime,
+                            "mtime_iso": datetime.fromtimestamp(mtime).isoformat(),
                         }
                     )
             except PermissionError:
                 continue
-        files.sort(key=lambda f: f["size_mb"], reverse=True)
+        # Newest first: auto-discovery picks the most recently uploaded/modified
+        # .qea (AAroN review 19.10.2026). size_mb is informational only.
+        files.sort(key=lambda f: f["mtime"], reverse=True)
         return files
 
     def _resolve_qea_path(self, qea_path: Optional[str] = None) -> str:
