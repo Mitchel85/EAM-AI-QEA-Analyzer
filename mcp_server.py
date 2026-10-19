@@ -293,9 +293,15 @@ if __name__ == "__main__":
 
     if args.http:
         print(f"Starting MCP server (Streamable HTTP) on http://localhost:{args.port}/mcp")
-        mcp.run(transport="streamable-http", host="127.0.0.1", port=args.port)
+        # FastMCP.run() akzeptiert keine host/port-Argumente (mcp>=1.28).
+        # Host/Port gehoeren in die Settings (AAroN-Review 19.10.2026).
+        mcp.settings.host = "127.0.0.1"
+        mcp.settings.port = args.port
+        mcp.run(transport="streamable-http")
     elif args.sse:
         print(f"Starting MCP server (SSE) on http://localhost:{args.port}/sse")
-        mcp.run(transport="sse", host="127.0.0.1", port=args.port)
+        mcp.settings.host = "127.0.0.1"
+        mcp.settings.port = args.port
+        mcp.run(transport="sse")
     else:
         mcp.run(transport="stdio")

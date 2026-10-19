@@ -20,6 +20,7 @@ import sqlite3
 import json
 import os
 import re
+import html
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Any
@@ -77,11 +78,19 @@ def _parse_path_aliases(value: Any) -> list[tuple[str, str]]:
 
 # NAF view type mapping (derived from NAF architecture knowledge)
 NAF_VIEW_STEREOTYPES = {
-    "NAF-2": ["Ov-2", "OpNode", "Needline", "InformationExchange"],
+    # NAF-2 (Operational Resource Flow): ADMBw-/NAFv4-Stereotype ergänzt.
+    "NAF-2": ["Ov-2", "OpNode", "Needline", "InformationExchange",
+              "OperationalPerformer", "OperationalRole", "OperationalActivity",
+              "OperationalPort", "OperationalExchange"],
     "NAF-3": ["Capability", "CapabilityConfiguration", "CapabilityDependency"],
-    "NAF-4": ["Ov-4", "OrganizationalResource", "OrganizationRole"],
+    # NAF-4 (Organizational Relationships): ADMBw-Stereotype ergänzt.
+    "NAF-4": ["Ov-4", "OrganizationalResource", "OrganizationRole",
+              "Organization", "OperationalPerformer", "Post", "Person",
+              "Responsibility"],
     "NAF-5": ["Sv-5", "Function", "Activity", "OperationalActivity"],
-    "NAF-6": ["Sv-6", "SystemResource", "ResourceInteraction"],
+    # NAF-6 (Resource Flow): ADMBw-Stereotype ergänzt.
+    "NAF-6": ["Sv-6", "SystemResource", "ResourceInteraction",
+              "ResourcePort", "ResourceExchange", "SystemPort"],
     "NAF-7": ["Tv-7", "Protocol", "Standard", "TechnicalStandard"],
 }
 
@@ -111,7 +120,11 @@ def pg_clean_str(value: Any) -> str:
     if value is None:
         return ""
     s = str(value)
-    return "" if s.lower() == "nan" else s
+    if s.lower() == "nan":
+        return ""
+    # Sparx speichert Rich-Text/Notizen HTML-escaped (z. B. &#228; für ä).
+    # AAroN liefert die Rohwerte; für Suche/Anzeige hier dekodieren.
+    return html.unescape(s)
 
 
 def pg_safe_snippet(value: Any, max_chars: int = 500) -> str:
@@ -1270,15 +1283,24 @@ class QEAAnalyzer:
         Execute a read-only SQL query for advanced analysis.
         The LLM can use this with AAroN-informed SQL knowledge.
 
-        SAFETY: Only SELECT statements allowed.
+        SAFETY: Only SELECT statements allowed; result is always capped.
         """
         sql_stripped = sql.strip().upper()
         if not sql_stripped.startswith("SELECT"):
             return [{"error": "Only SELECT queries allowed"}]
+        if ";" in sql.strip().rstrip(";"):
+            return [{"error": "Multiple statements are not allowed"}]
 
-        # Add LIMIT if not present (safety)
-        if "LIMIT" not in sql_stripped:
-            sql = sql.rstrip(";") + f" LIMIT {limit}"
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            limit = 200
+        limit = max(1, min(limit, 1000))
+
+        # Vorhandenes LIMIT am Statement-Ende entfernen und immer selbst kappen.
+        inner = sql.strip().rstrip(";")
+        inner = re.sub(r"\s+LIMIT\s+\d+(\s*,\s*\d+)?\s*$", "", inner, flags=re.IGNORECASE)
+        sql = inner + f" LIMIT {limit}"
 
         try:
             return self._query(sql)
@@ -2035,7 +2057,7 @@ class Tools:
             return json.dumps({"error": str(e)})
 
     async def execute_qea_sql(
-        self, qea_path: Optional[str] = None, sql: str = "", limit: int = 100
+        self, qea_path: Optional[str] = None, sql: str = "", limit: int = 200
     ) -> str:
         """
         Execute a read-only SQL query against a QEA file.
