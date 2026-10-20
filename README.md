@@ -116,10 +116,10 @@ Für Architekten, die im Bw-Umfeld mit NAFv4-Modellen arbeiten, kann der QEA-Ana
 
 | Datei | Zweck |
 |-------|-------|
-| `ADMBw-Knowledge-Topology.md` | Source→Connector→Target (117 Regeln) |
+| `ADMBw-Knowledge-Topology.md` | Source→Connector→Target (203 Zeilen, 133 vollständige Regeln) |
 | `ADMBw-Knowledge-Connectors.md` | EA-Metatyp → ADMBw-Stereotyp |
 | `ADMBw-Knowledge-Viewpoints.md` | Elemente pro Viewpoint |
-| `ADMBw-Knowledge-Stereotypes.md` | 317 Stereotype + AppliesTo |
+| `ADMBw-Knowledge-Stereotypes.md` | 318 Stereotype + AppliesTo, 44 davon abstrakt (🔒) |
 
 > 🔗 **Repository:** [Mitchel85/EAM-AI-ADMBw-Extractor](https://github.com/Mitchel85/EAM-AI-ADMBw-Extractor)
 
