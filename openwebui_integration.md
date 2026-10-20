@@ -1,4 +1,4 @@
-# EAM QEA Analyzer — Open WebUI Integration Guide
+# EAM-AI-QEA-Analyzer — Open WebUI Integration Guide
 
 > **Basierend auf AAroN** (github.com/schmitze87/AAroN) — Apache 2.0  
 > AAroN ist ein Neo4j-Plugin für Sparx EA Architekturen, entwickelt für NAF-Modelle.

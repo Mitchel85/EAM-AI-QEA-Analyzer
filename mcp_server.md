@@ -2,7 +2,7 @@
 
 > **Standard-Protokoll, ein Server, alle Clients.**
 >
-> Der MCP-Server macht den EAM QEA Analyzer für JEDES MCP-fähige LLM verfügbar —
+> Der MCP-Server macht den EAM-AI-QEA-Analyzer für JEDES MCP-fähige LLM verfügbar —
 > Open-WebUI, Claude Desktop, VS Code Continue und mehr.
 
 ---

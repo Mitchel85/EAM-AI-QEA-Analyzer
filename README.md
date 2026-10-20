@@ -1,4 +1,4 @@
-# EAM QEA Tool v0.4
+# EAM-AI-QEA-Analyzer v0.4
 
 > **Stelle natürlichsprachliche Abfragen an ein Sparx-EA-Modell — lokal, in Open WebUI oder per MCP.**
 >
@@ -37,7 +37,7 @@
 | Metadaten abfragen | *„Finde alle Elemente mit TaggedValue Sicherheitseinstufung=VS-NfD"* |
 | Modellstatistik | *„Gib mir eine Statistik über alle Elementtypen im Modell"* |
 
-Der **EAM QEA Analyzer** ist ein KI-gestützter Assistent für Enterprise-Architekten,
+Der **EAM-AI-QEA-Analyzer** ist ein KI-gestützter Assistent für Enterprise-Architekten,
 der das QEA-Format (SQLite) über eine natürlichsprachliche Schnittstelle
 zugänglich macht. Das zugrundeliegende Tabellenwissen stammt aus **AAroN** —
 einem Neo4j-Plugin, das die QEA-Tabellenstruktur abbildet.
