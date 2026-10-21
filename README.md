@@ -1,6 +1,6 @@
 # EAM-AI-QEA-Analyzer v0.4
 
-> **Stelle natürlichsprachliche Abfragen an ein Sparx-EA-Modell — lokal, in Open WebUI oder per MCP.**
+> **Stelle natürlichsprachliche Abfragen an ein `.qea`-Modell — lokal, in Open WebUI oder per MCP.**
 >
 > `.qea`-Datei laden, Frage stellen, strukturierte Antwort erhalten.
 > Das Tool übersetzt natürliche Sprache in präzise Datenbankabfragen, löst implizite Beziehungen auf

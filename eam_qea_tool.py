@@ -1623,7 +1623,7 @@ class QEAAnalyzer:
 
 class Tools:
     """
-    EAM QEA Analyzer — Tools for Sparx Enterprise Architect Models.
+    EAM QEA Analyzer — Werkzeug für .qea- und .qeax-Modelle (SQLite-Format von Sparx Systems Enterprise Architect). Unabhängiges Drittanbieter-Produkt.
 
     CRITICAL INSTRUCTION FOR THE LLM:
     When the user uploads a .qea or .qeax file, DO NOT rely on your internal document/RAG retrieval.
