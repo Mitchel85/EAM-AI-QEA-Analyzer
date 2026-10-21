@@ -183,3 +183,4 @@ Apache License 2.0
 
 * **Keine Verbindung zu Sparx Systems.** Dieses Werkzeug ist ein unabhängiges, privat erstelltes Projekt. Es steht in keiner Verbindung zu Sparx Systems Pty Ltd., ist von dort **nicht** freigegeben oder zertifiziert und verwendet keine Logos oder Marken von Sparx Systems. Die Bezeichnungen „Sparx Systems", „Enterprise Architect" und „EA" werden ausschließlich **beschreibend** verwendet, um den Dateityp zu benennen, den dieses Werkzeug liest.
 * **Kein EA-Bestandteil:** Es werden keine Dateien, Bibliotheken, Lizenzschlüssel oder Programmbestandteile von Sparx Systems mitgeliefert oder umgangen. `.qea`-Dateien werden ausschließlich lesend als SQLite-Datenbank geöffnet.
+* **Marken:** „Sparx Systems", „Enterprise Architect" und „EA" sind Marken oder eingetragene Marken der Sparx Systems Pty Ltd. Alle weiteren Marken sind Eigentum ihrer jeweiligen Inhaber.
