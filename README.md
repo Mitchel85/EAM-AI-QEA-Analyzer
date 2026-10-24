@@ -1,3 +1,8 @@
+> **Archiviert (24.10.2026).** Dieses Repository wird nicht mehr weiterentwickelt.
+> Die aktive Quelle ist [Mitchel85/EAM-Platform](https://github.com/Mitchel85/EAM-Platform)
+> (ein MDG-Leser, eine Wissensbasis, alle Auslieferungen).
+> Der letzte Stand bleibt als Tag `pre-consolidation-2026-10` lesbar.
+
 # EAM-AI-QEA-Analyzer v0.4
 
 > **Stelle natürlichsprachliche Abfragen an ein `.qea`-Modell — lokal, in Open WebUI oder per MCP.**
